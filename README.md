@@ -8,56 +8,35 @@ Full-stack implementation of the Design Mantra interior BOQ and quote-generator 
 - Document service: Python 3.11+ + FastAPI + ReportLab + python-docx
 - Docker Compose is supported, but **Docker is not required for local development**.
 
-## Option A — Run locally without Docker
+## Run locally without Docker
 
 ### 1. Prerequisites
-Install:
-- Node.js 20+
-- npm 10+
-- Python 3.11+
-- PostgreSQL 14+
+Install Node.js 20+, npm 10+, Python 3.11+, and PostgreSQL 14+.
 
-Create a PostgreSQL database and user matching `.env.example`, or change `DATABASE_URL` to your own connection string.
-
-Example using psql:
+Create a PostgreSQL database/user. Example with `psql`:
 
 ```sql
 CREATE USER designmantra WITH PASSWORD 'designmantra';
 CREATE DATABASE designmantra OWNER designmantra;
 ```
 
-### 2. Install Node dependencies
+### 2. Install dependencies
 
 From the repository root:
 
 ```bash
 npm install
 npm run install:all
-```
-
-Generate Prisma client:
-
-```bash
 npm run db:generate
 ```
 
-Create/update the database schema:
+### 3. Configure the backend
 
 ```bash
-npm run db:push
+cp backend/.env.example backend/.env
 ```
 
-Seed the starter catalog:
-
-```bash
-npm run db:seed
-```
-
-### 3. Configure environment
-
-Copy `.env.example` to `.env` and adjust `DATABASE_URL` if your PostgreSQL credentials differ.
-
-Backend local configuration:
+The default file points to:
 
 ```env
 DATABASE_URL=postgresql://designmantra:designmantra@localhost:5432/designmantra?schema=public
@@ -65,13 +44,28 @@ DOC_SERVICE_URL=http://localhost:8000
 PORT=4000
 ```
 
-Frontend can use:
+Change the PostgreSQL URL if your local credentials differ.
+
+Prepare and seed the database:
+
+```bash
+npm run db:push
+npm run db:seed
+```
+
+### 4. Configure the frontend
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+Default:
 
 ```env
 VITE_API_URL=http://localhost:4000
 ```
 
-### 4. Install Python dependencies
+### 5. Install Python dependencies
 
 ```bash
 cd doc-service
@@ -82,7 +76,7 @@ pip install -r requirements.txt
 cd ..
 ```
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 cd doc-service
@@ -93,7 +87,7 @@ pip install -r requirements.txt
 cd ..
 ```
 
-### 5. Start everything
+### 6. Start all three application services
 
 From the repository root:
 
@@ -109,7 +103,7 @@ This starts:
 | Node API | http://localhost:4000 |
 | Document service | http://localhost:8000 |
 
-If you prefer separate terminals:
+Or use three terminals:
 
 ```bash
 npm run dev:backend
@@ -117,16 +111,18 @@ npm run dev:docs
 npm run dev:frontend
 ```
 
-### 6. Verify services
+### 7. Verify
 
 ```bash
 curl http://localhost:4000/health
 curl http://localhost:8000/health
 ```
 
-Expected responses contain `"ok":true`.
+Then open http://localhost:5173.
 
-## Document service tests
+## Tests
+
+Document-service smoke tests:
 
 ```bash
 cd doc-service
@@ -135,22 +131,22 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
-## Frontend/backend builds
+Frontend/backend production builds:
 
 ```bash
 npm run build
 ```
 
-## Option B — Docker
+## Docker option
 
-Docker remains supported:
+Docker remains fully supported:
 
 ```bash
 docker compose up --build
 ```
 
-The Docker setup includes PostgreSQL, the Node API, the Python document service, and the Vite frontend.
+This starts PostgreSQL, Node API, FastAPI document service, and frontend together.
 
-## Important
+## Note about PostgreSQL
 
-The local non-Docker setup still requires PostgreSQL to be installed/running. Docker is optional; PostgreSQL itself is not currently replaced by an in-process database because the PRD specifies PostgreSQL + Prisma.
+The non-Docker setup does **not** mean the application is database-free. PostgreSQL is still required because the PRD specifies PostgreSQL + Prisma. Docker is simply optional.
