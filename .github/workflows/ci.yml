@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: designmantra
+          POSTGRES_PASSWORD: designmantra
+          POSTGRES_DB: designmantra
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U designmantra -d designmantra"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://designmantra:designmantra@localhost:5432/designmantra?schema=public
+      DOC_SERVICE_URL: http://localhost:8000
+      PORT: 4000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root and app dependencies
+        run: npm install && npm run install:all
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Push Prisma schema
+        run: npm run db:push
+
+      - name: Build frontend and backend
+        run: npm run build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: python -m pip install -r doc-service/requirements-dev.txt
+
+      - name: Test document service
+        working-directory: doc-service
+        run: pytest -q
