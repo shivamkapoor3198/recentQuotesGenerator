@@ -1,0 +1,20 @@
+{
+  "name": "design-mantra-boq-generator",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -k -n API,DOCS,WEB \"npm --prefix backend run dev\" \"python3 -m uvicorn main:app --app-dir doc-service --reload --port 8000\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:docs": "python3 -m uvicorn main:app --app-dir doc-service --reload --port 8000",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "setup": "npm run install:all && npm --prefix backend run prisma:generate",
+    "db:generate": "npm --prefix backend run prisma:generate",
+    "db:migrate": "npm --prefix backend run prisma:migrate",
+    "db:seed": "npm --prefix backend run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
