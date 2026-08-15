@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: designmantra
+      POSTGRES_PASSWORD: designmantra
+      POSTGRES_DB: designmantra
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://designmantra:designmantra@postgres:5432/designmantra?schema=public
+      DOC_SERVICE_URL: http://doc-service:8000
+      PORT: 4000
+    ports: ["4000:4000"]
+    depends_on: [postgres, doc-service]
+  doc-service:
+    build: ./doc-service
+    ports: ["8000:8000"]
+  frontend:
+    build: ./frontend
+    ports: ["5173:5173"]
+    depends_on: [backend]
+volumes:
+  pgdata:
